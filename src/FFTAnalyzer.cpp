@@ -84,16 +84,23 @@ int FFTAnalyzer::configure(AudioIn* input)
   if (channels != 1 && channels != 2) {
     return 0;
   }
-
+  
   if (bitsPerSample == 16) {
+    #define BITSPERSAMPLE 16
+  }
+  else {
+    #define BITSPERSAMPLE 32  
+  }
+
+  #if BITSPERSAMPLE == 16
     if (ARM_MATH_SUCCESS != arm_rfft_init_q15(&_S15, _length, 0, 1)) {
       return 0;
     }
-  } else {
+  #else
     if (ARM_MATH_SUCCESS != arm_rfft_init_q31(&_S31, _length, 0, 1)) {
       return 0;
     }
-  }
+  #endif
 
   _bitsPerSample = bitsPerSample;
   _channels = channels;
@@ -180,15 +187,14 @@ void FFTAnalyzer::update(const void* buffer, size_t size)
     memcpy(newSamples, buffer, size);
   }
 
-  if (_bitsPerSample == 16) {
+  #if BITSPERSAMPLE == 16
     arm_rfft_q15(&_S15, (q15_t*)_sampleBuffer, (q15_t*)_fftBuffer);
-
-    arm_cmplx_mag_q15((q15_t*)_spectrumBuffer, (q15_t*)_fftBuffer, _length);
-  } else {
+    //arm_cmplx_mag_q15((q15_t*)_spectrumBuffer, (q15_t*)_fftBuffer, _length); //src, dest, len - is this not the wrong way round?
+    arm_cmplx_mag_q15((q15_t*)_fftBuffer, (q15_t*)_spectrumBuffer, _length);
+  #else
     arm_rfft_q31(&_S31, (q31_t*)_sampleBuffer, (q31_t*)_fftBuffer);
-
     arm_cmplx_mag_q31((q31_t*)_fftBuffer, (q31_t*) _spectrumBuffer, _length);
-  }
+  #endif
 
   _available = 1;
 }

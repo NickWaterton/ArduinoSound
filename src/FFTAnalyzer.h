@@ -21,7 +21,10 @@
 
 #include <Arduino.h>
 
-#define ARM_MATH_CM0PLUS
+//#define ARM_MATH_CM0PLUS
+#define ARM_MATH_CM4
+#define __FPU_PRESENT 1
+//#define __MPU_PRESENT 1
 #include <arm_math.h>
 
 #include "AudioAnalyzer.h"
